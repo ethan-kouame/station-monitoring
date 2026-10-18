@@ -1,0 +1,9 @@
+# Secrets : ne jamais publier
+config.py
+
+# Base de données locale (tes mesures)
+station.db
+
+# Fichiers temporaires créés par Python
+__pycache__/
+*.pyc
