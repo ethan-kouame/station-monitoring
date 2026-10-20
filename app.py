@@ -5,6 +5,24 @@ import config
 
 app = Flask(__name__)
 app.secret_key = config.SECRET_KEY
+def initialiser_base():
+    connexion = sqlite3.connect("station.db")
+    curseur = connexion.cursor()
+    curseur.execute("CREATE TABLE IF NOT EXISTS audit_logs (id INTEGER PRIMARY KEY, date TEXT, identifiant TEXT, action TEXT, ip TEXT)")
+    connexion.commit()
+    connexion.close()
+
+initialiser_base()
+def journaliser (identifiant, action):
+    connexion = sqlite3.connect("station.db")
+    curseur = connexion.cursor()
+    curseur.execute(
+        "INSERT INTO audit_logs (date, identifiant, action, ip) VALUES (datetime('now', 'localtime'), ?, ?, ?)",
+        [identifiant, action, request.remote_addr]
+    )
+    connexion.commit()
+    connexion.close()
+
 
 @app.route("/")
 def acceuil():
@@ -45,9 +63,11 @@ def login():
         identifiant = request.form["identifiant"]
         mot_de_passe = request.form["mot_de_passe"]
         if identifiant == config.IDENTIFIANT and check_password_hash(config.MOT_DE_PASSE_HASH, mot_de_passe):
+            journaliser(identifiant, "LOGIN_SUCCESS")
             session["utilisateur"] = identifiant
             return redirect ("/")
         else:
+            journaliser(identifiant, "LOGIN_FAIL")
             message = "Identifiant ou mot de passe incorrect"
 
     page = "<h1>Connexion</h1>"
@@ -61,6 +81,7 @@ def login():
 
 @app.route("/logout")
 def logout():
+    journaliser(session.get("utilisateur"), "LOGOUT")
     session.clear()
     return redirect("/login")
 
