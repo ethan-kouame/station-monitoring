@@ -23,6 +23,19 @@ def journaliser (identifiant, action):
     connexion.commit()
     connexion.close()
 
+def trop_de_tentative(ip):
+    connexion = sqlite3.connect("station.db")
+    curseur = connexion.cursor()
+    curseur.execute(
+        "SELECT COUNT(*) FROM audit_logs WHERE ip = ? AND action = 'LOGIN_FAIL' AND date > datetime('now', 'localtime', '-5 minutes')",
+        [ip]
+    )
+    nombre = curseur.fetchone()[0]
+    connexion.close()
+    return nombre >= 5
+
+    
+
 
 @app.route("/")
 def acceuil():
@@ -62,7 +75,10 @@ def login():
     if request.method == "POST":
         identifiant = request.form["identifiant"]
         mot_de_passe = request.form["mot_de_passe"]
-        if identifiant == config.IDENTIFIANT and check_password_hash(config.MOT_DE_PASSE_HASH, mot_de_passe):
+        if trop_de_tentative(request.remote_addr):
+            journaliser(identifiant, "LOGIN_BLOCKED")
+            message = "Trop de tentatives. Réessaie dans 5 minutes."
+        elif identifiant == config.IDENTIFIANT and check_password_hash(config.MOT_DE_PASSE_HASH, mot_de_passe):
             journaliser(identifiant, "LOGIN_SUCCESS")
             session["utilisateur"] = identifiant
             return redirect ("/")
