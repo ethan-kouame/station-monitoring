@@ -52,9 +52,9 @@ python app.py       # lance le site sur http://127.0.0.1:5000
 ## Feuille de route
 
 - [x] Capteur simulé, base de données, site web, connexion sécurisée
-- [ ] Vrai capteur (ESP32 + DHT22) connecté en Wi-Fi
+- [ ] Vrai capteur (ESP32 + DHT11) connecté en Wi-Fi
 - [x] Journal des connexions 
-- [ ] Limitation des tentatives
+- [x] Limitation des tentatives
 - [ ] Détection d'anomalies par apprentissage automatique
 
 ## Auteur
